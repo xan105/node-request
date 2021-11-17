@@ -1,46 +1,35 @@
 {
-  "env": {
-    "commonjs": true,
-    "es6": true,
-    "es2017": true,
-    "es2020": false,
-    "node": true
-  },
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
-  "parserOptions": {
-    "ecmaVersion": 11
-  },
-  "rules": {
-    "no-alert": "warn",
-    "no-eval": "error",
-    "require-await": "warn",
-    "strict": "error"
-  },
-  "overrides": [
-    {
-      "files": ["*.mjs"],
-      "parserOptions": {
-        "sourceType": "module"
-      }
+    "env": {
+        "node": true,
+        "commonjs": false,
+        "es6": true,
+        "es2017": true,
+        "es2020": true,
+        "es2021": true
     },
-    {
-      "files": ["fetch.js"],
-      "env": {
-        "browser": true
-      },
-      "parserOptions": {
-        "sourceType": "module"
-      }
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
     },
-    {
-      "files": ["download.cjs"],
-      "rules": {
-        "no-useless-escape": "off"
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "rules": {
+      "no-alert": "warn",
+      "no-eval": "error",
+      "require-await": "warn",
+      "no-useless-escape": "warn"
+    },
+    "overrides":
+    [
+      {
+        "files": ["lib/browser/*.js"],
+           "env": {
+              "node": false,  
+              "browser": true
+           }
       }
-    }
-  ],
-  "extends": ["eslint:recommended", "prettier"]
+    ]
 }
