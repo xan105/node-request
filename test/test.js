@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { h1 as request } from "../lib/esm.js";
+import { h1 as request, torrent } from "../lib/esm.js";
 
 let req;
 
@@ -24,40 +24,42 @@ let req;
 //req = await request.head(`http://dl.aion.gameforge.com/aion/AION-LIVE/${version}/Patch/FileInfoMap_AION-LIVE_${version}.dat.zip`);
 //req = await request.head(`http://ipv4.download.thinkbroadband.com/1GB.zip`);
 //req = await request.head(`https://jsonplaceholder.typicode.com/todos/1`);
+//req = await request.head("https://api.xan105.com/steam/ach/420");
 
-
-try{
+/*try{
   console.log("zero max retry");
   req = await request.get("http://127.0.0.1/uplay/ach/54");
   console.log(req);
 }catch(err){
   console.error(err);
 }
-/*console.log("2 max retry");
-req = await request.get("http://127.0.0.1/uplay/ach/54",{maxRetry: 2});
-/*/
+console.log("2 max retry");
+req = await request.get("http://127.0.0.1/uplay/ach/54",{maxRetry: 2});*/
+
 
 //simple download test
 //req = await request.download("http://psxdatacenter.com/sbifiles/Resident%20Evil%203%20-%20Nemesis%20(F)%20[SLES-02530]%20sbi.7z","download",{filename: "RE3 sbi.7z"}, printProgress);
 
 //download fron github ... redirection aws ... content disposition
-//req = await request.download("https://github.com/xan105/Achievement-Watcher/releases/download/1.1.0/Achievement.Watcher.Setup.exe","download",{filename: "supersetup.exe"}, printProgress);
+//req = await request.download("https://github.com/xan105/Achievement-Watcher/releases/download/1.1.0/Achievement.Watcher.Setup.exe","download", printProgress);
 
 //big file download test (user agent check)
 //req = await request.download("http://ipv4.download.thinkbroadband.com/1GB.zip","download",printProgress)
 
-  //small file list download test
-  /*req = await request.download.all(["http://ipv4.download.thinkbroadband.com/5MB.zip",
+//small file list download test
+/*
+req = await request.downloadAll(["http://ipv4.download.thinkbroadband.com/5MB.zip",
                                   "http://ipv4.download.thinkbroadband.com/10MB.zip",
                                   "http://ipv4.download.thinkbroadband.com/20MB.zip",
                                   "http://ipv4.download.thinkbroadband.com/50MB.zip"],
-                                  "download",printProgress)*/
+                                  "download",printProgress)
+*/
 
 //checksum download test
 //req = await request.download("http://ipv4.download.thinkbroadband.com/10MB.zip","download",{hash: {algo: "md5", sum: "3aa55f03c298b83cd7708e90d289afbd"}}, printProgress);
 
-  //torrent download test
-  //await request.download.torrent("D:\\Downloads\\[SubsPlease] Kanojo mo Kanojo - 07 (1080p) [946B977E].mkv.torrent","./download",printProgress);
+//torrent download test
+//req = await torrent.download("D:\\downloads\\[SubsPlease] Sekai Saikou no Ansatsusha, Isekai Kizoku ni Tensei suru - 07 (1080p) [DFD74109].mkv.torrent","./download",printProgress);
 
   //req = await request.getJson("http://127.0.0.1/steam/ach/420",{maxRetry: 1});
 
@@ -65,7 +67,22 @@ req = await request.get("http://127.0.0.1/uplay/ach/54",{maxRetry: 2});
 
   //req = await request.get("https://steamdb.info/app/220/",{method:"POST"});
 
-console.log(req);
+
+//abort
+const controller = new AbortController();
+const signal = controller.signal;
+
+//req = request.head("https://api.xan105.com/steam/ach/420",{signal: signal, maxRetry: 2});
+
+req = request.downloadAll(["http://ipv4.download.thinkbroadband.com/5MB.zip",
+                                  "http://ipv4.download.thinkbroadband.com/10MB.zip",
+                                  "http://ipv4.download.thinkbroadband.com/20MB.zip",
+                                  "http://ipv4.download.thinkbroadband.com/50MB.zip"],
+                                  "download",{signal: signal}, printProgress)
+
+setTimeout( function(){ console.log("cancel"); controller.abort() }, 5 * 1000);
+
+console.log(await req);
 
 function printProgress(percent, speed, dest) {
   process.stdout.clearLine();
