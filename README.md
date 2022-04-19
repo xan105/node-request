@@ -1,227 +1,326 @@
-This module is based around the Node.js's HTTP(S) API interfaces.<br />
-It retries on error, follows redirects and provides progress when downloading (pipe to stream) out of the box.<br />
-It uses promises and has no dependencies.
+About
+=====
 
-_There is also a version that uses the Web Fetch API for the Browser ([See below for more details](#Browser))._
+HTTP request library based around Node.js' HTTP(S) API interfaces:
 
-### Optional packages
+- http/https
+- ~~http2~~¹
+- ~~undici/fetch (_included in Node.js 18_)~~¹
 
-The following optional package will add functions to download torrent and get xml ([See below for more details](#API))
+¹ Work in progress
+
+Provides common features such as retry on error, following redirects, progress when downloading file, ...<br />
+
+This library isn't intented to compete nor replace the well known libraries out there such as got, axios, node-fetch, ...
+This is merely educational and for informational purposes in order to learn how HTTP requests work under the hood.
+
+This was originally created as [(request-zero)](https://www.npmjs.com/package/request-zero) at a time were the module `request` was the main choice and I didn't quite like it.
+It had a ton of dependencies, didn't use promises and I needed something very simple.
+
+Example
+=======
+
+Simplest call
+
+```js
+import { request } from "@xan105/request";
+const res = await request("https://steamdb.info/app/220/");
+console.log(res.body);
+```
+
+Json
+
+```js
+import { getJson } from "@xan105/request";
+
+const json = await getJson("https://jsonplaceholder.typicode.com/todos/1");
+console.log(json); 
+/*Output:
+{ userId: 1, id: 1, title: 'delectus aut autem', completed: false }
+*/
+
+//Github API
+const json = await getJson("https://api.github.com/repos/user/repo/releases/latest",
+                          {headers: {"Accept" : "application/vnd.github.v3+json"}});
+console.log(json);
+/*Output:
+{ url: '...', tag_name: '0.0.0', target_commitish: 'master', ... }
+*/
+```
+
+Download file(s)
+
+```js
+import { download, downloadAll } from "@xan105/request";
+
+//Callback example to output progress in the console
+function printProgress(percent, speed, file){
+  process.stdout.clearLine();
+  process.stdout.cursorTo(0);
+  process.stdout.write(`${percent}% @ ${speed} kb/s [${file}]`);
+}
+
+//Simple download to disk (pipe to stream)
+await download("http://ipv4.download.thinkbroadband.com/1GB.zip","D:/Downloads", printProgress)
+
+//Download from github ... aws redirection ... content disposition ... but custom filename
+const res = await download("https://github.com/user/repo/releases/download/0.0.0/Setup.exe",
+                           "D:/Downloads/", {filename: "supersetup.exe"}, printProgress);
+console.log(res); 
+/*Output:
+{ status: 200, message: 'OK', headers: {...}, path: 'D:\\Downloads\\supersetup.exe' }
+*/
+
+//Download a list of files one by one
+await request.download.all(["http://ipv4.download.thinkbroadband.com/5MB.zip",
+                            "http://ipv4.download.thinkbroadband.com/10MB.zip",
+                            "http://ipv4.download.thinkbroadband.com/20MB.zip",
+                            "http://ipv4.download.thinkbroadband.com/50MB.zip"],
+                            "D:\\Downloads", printProgress);
+```
+
+Download a torrent
+
+```js
+import { download } from "@xan105/request/torrent";
+download("https://webtorrent.io/torrents/sintel.torrent","D:\\Downloads");
+```
+
+Misc
+
+```js
+import * as h1 from "@xan105/request";
+
+//Head request
+const res = await h1.head(`http://ipv4.download.thinkbroadband.com/1GB.zip`);
+console.log(res);
+*/Output:
+{ status: 200, message: 'OK', headers: {...} }
+*/
+
+//Manually specify retry on error and redirection to follow
+await request("https://steamdb.info/app/220/", {maxRetry: 2, maxRedirect: 2});
+
+//Upload a single file multipart/form-data
+const res = await h1.upload("http://127.0.0.1/upload/test/",
+                            "Hello world", {name: "file", filename: "hello world.txt"});
+console.log(res);
+/*Output:
+{ status: 200, message: 'OK', headers: {...}, body: 'ok' }
+*/
+```
+
+Installation
+============
+
+```
+npm install @xan105/request
+```
+
+## Optional packages
 
 - [webtorrent](https://www.npmjs.com/package/webtorrent)<br />
-  `npm i webtorrent`
+  Downloading torrent<br />
+```
+npm i webtorrent
+```
+
 - [xml2js](https://www.npmjs.com/package/xml2js)<br />
-  `npm i xml2js`
-
-# Common use cases:
-
-```js
-const request = require('request-zero');
-
-(async () => {
-
-     //Simplest call
-     let res = await request("https://steamdb.info/app/220/");
-     console.log(res.body); //=> '<!DOCTYPE HTML> ...'
-
-     //Get json data
-     let json = await request.getJson("https://jsonplaceholder.typicode.com/todos/1");
-     console.log(json); //=> '{ userId: 1, id: 1, title: 'delectus aut autem', completed: false }'
-
-     //Get json data from github
-     let json = await request.getJson("https://api.github.com/repos/user/repo/releases/latest",
-                                     {headers: {"Accept" : "application/vnd.github.v3+json"}});
-     console.log(json); //=> { url: '...', tag_name: '0.0.0', target_commitish: 'master', ... }
-
-     //Head request
-     let res = await request.head(`http://ipv4.download.thinkbroadband.com/1GB.zip`);
-     console.log(res); //=> { status: 200, message: 'OK', headers: {...} }
-
-     //Simple download to disk (pipe to stream)
-     await request.download("http://ipv4.download.thinkbroadband.com/1GB.zip",
-                            "D:/Downloads", printProgress)
-
-     //Download from github ... aws redirection ... content disposition ... but custom filename
-     let res = await request.download("https://github.com/user/repo/releases/download/0.0.0/Setup.exe",
-                                      "D:/Downloads/", {filename: "supersetup.exe"}, printProgress);
-     console.log(res); //=> { status: 200, message: 'OK', headers: {...},
-                              path: 'D:\\Downloads\\supersetup.exe' }
-
-     //Download a list of files one by one
-     await request.download.all(["http://ipv4.download.thinkbroadband.com/5MB.zip",
-                                 "http://ipv4.download.thinkbroadband.com/10MB.zip",
-                                 "http://ipv4.download.thinkbroadband.com/20MB.zip",
-                                 "http://ipv4.download.thinkbroadband.com/50MB.zip"],
-                                 "D:\\Downloads", printProgress);
-
-    //Download a torrent
-    request.download.torrent("https://webtorrent.io/torrents/sintel.torrent","D:\\Downloads");
-
-    //Upload a single file multipart/form-data
-    let res = await request.upload("http://127.0.0.1/upload/test/",
-                                   "Hello world", {name: "file", filename: "hello world.txt"});
-    console.log(res); //=> { status: 200, message: 'OK', headers: {...}, body: 'ok' }
-
-    //Use of custom retry on error and redirection to follow
-    await request("https://steamdb.info/app/220/", {maxRetry: 2, maxRedirect: 2});
-
-})();
-
-//Callback example for request.download
-function printProgress(percent, speed, file){
-    process.stdout.clearLine();
-    process.stdout.cursorTo(0);
-    process.stdout.write(`${percent}% @ ${speed} kb/s [${file}]`);
-}
-
+  Auto parsing xml (_like .getJson()_)<br />
+```
+npm i xml2js
 ```
 
-There are more options and methods short-hand, see below.
+API
+===
 
-# Common API Options
+⚠️ This module is only available as an ECMAScript module (ESM) starting with version 2.0.0.<br />
+Previous version(s) are CommonJS (CJS) with an ESM wrapper.
 
-All methods accept an optional object which you can set with any of the following :
-
-| option      | default                                           | description                                                                        |
-| ----------- | ------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| encoding    | utf8 (request)                                    | response encoding                                                                  |
-| timeout     | 3000 ms (request/download)<br/>10000 ms (torrent) | Time before aborting request                                                       |
-| maxRedirect | 3                                                 | How many redirections to follow before aborting.<br/>Use 0 to not follow redirects |
-| maxRetry    | 0 (request)<br/>3 (download)                      | How many retries on error before aborting.<br/>Use 0 to not retry at all           |
-| retryDelay  | 200 ms (request)<br/>500 ms (download)            | How long to wait before a retry.<br/>Use 0 to instantly retry                      |
-| headers     | {'User-Agent': 'Chrome/'}                         | Headers of your request                                                            |
-
-There are more options and/or restrictions but they are specific to certains methods, check the API section.
-
-# API
-
-All \*request.**x\*** methods are short-hand of a wrapper to the Node.js's HTTP(S) API interfaces _http(s).request()_<br/>
-All \*request.download.**x\*** methods are short-hand of a wrapper to the Node.js's HTTP(S) API interfaces _http(s).get()_ which pipes the data to a _WriteStream_ (except for \*request.download.**torrent\*** obviously which relies on webtorrent).<br/>
-
-There are multiple points of failure, the API tries to return an error object with the same properties as much as possible.
+💡 The underlying API used is determined by which namespace you import.<br />
+By default this is the http/https (h1) API.<br />
+Torrent related are under the `torrent` namespace.
 
 ```js
+//Default
+import * as h1 from '@xan105/request';
+
+//http/https (h1)
+import * as h1 from '@xan105/request/h1';
+
+//http2 (h2)¹
+import * as h2 from '@xan105/request/h2';
+
+//Fetch¹
+import * as fetch from '@xan105/request/fetch';
+
+//Torrent
+import * as torrent from "@xan105/request/torrent";
+```
+
+¹ Work in progress (unavailable at the moment)
+
+## Named export
+
+### `request(href: string, payload?: any, option?: obj): Promise<obj>`
+
+This is the core request function every other functions are helper based on this one (_except download, downloadAll and torrent_).
+
+The response obj tries to be similar whether the request failed or succeeded.
+
+```ts
 {
- code : ..., // HTTP Response code | Node.js error code
- message: ..., // HTTP Response message | Node.js error message,
- url: ..., // URL
- trace: [...], // Array of URL(s) used so far for the request (history). Useful for tracking redirections.
- headers: ... // HTTP Response headers when available and relevant
+  code: string, //HTTP or Node error code
+  message: string, //HTTP or Node error message (if any)
+  trace: string[], //URL(s) of the request (redirection)
+  domain: string, //url domain
+  sent: obj, //Header sent
+  address?: string, //IP address
+  family?: string, //IPv4 or IPv6
+  protocol?: string, //HTTP protocol (h1, h2, ...)
+  security?: string, //TLS (HTTPS)
+  port: number, //Network port
+  headers?: obj, //Response header
+  body?: string //Response body
 }
 ```
 
-- `request.getJson(url **string**, [option] object)`<br/>
-  Make a GET request to url with 'Accept' header set to 'application/json, application/json;indent=2' if unset in option and parse the result.<br/>
-  Returns the JSON.parsed data.
-- `request.getXml(url **string**, [option] object)`<br/>
-  Make a GET request to url with 'Accept' header set to 'application/xml' if unset in option and parse the result.<br/>
-  Returns the parsed xml to JavaScript object.<br/>
-  ⚠️ Requires the optional module: xml2js.<br/>
-- `request.head(url string, [option] object)`<br/>
-  Make a HEAD request to url. Returns response headers no matter the HTTP response code.<br/>
-  NB: Doesn't follow redirection by design. So maxRedirect is useless here and no trace array is returned.<br/>
-  If you need to follow the redirection you can use the headers['location'] from the response and make a new HEAD request.<br/>
-  Returns an object:
-  ```js
-  {
-    code: ..., // HTTP Response code
-    message: ..., //HTTP Response message
-    url: ..., // URL
-    headers: ... //HTTP Response headers
-  }
-  ```
-- `request.get(url string, [option] object)` <br/>
-  Make a GET request to url.<br/>
-  NB: Since request default to method 'GET' you could just use request directly. But this is here for completeness.<br/>
-  Returns an object:
-  ```js
-  {
-    code: ..., // HTTP Response code
-    message: ..., //HTTP Response message
-    url: ..., // URL
-    trace: [...], // URL history
-    headers: ..., //HTTP Response headers
-    body: ... // HTTP Response body on success
-  }
-  ```
-- `request.post(url string, [payload] string|Buffer, [option] object)`<br/>
-  Make a POST request to url and write/push payload.<br/>
-  NB: On HTTP 301, 302, 303 redirection the method will be [changed to GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)<br/>
-  Returns as above.
-- `request.upload(url string, content string|Buffer, [option] object)`<br/>
-  Make a POST request with content within a multipart/form-data payload.<br/>
-  You can use option {fieldname: ..., filename: ...} to specify the form field name and the file name.<br/>
-  If you don't they will default respectively to 'file' and Date.now().<br/>
-  Returns as above.
-- `request.download(url string, destDir string, [option] object, [callbackProgress] function)`<br/>
-  Download file from url to destDir (if the dir doesn't exist it will be created for you).<br/>
-  You can force the filename with option {filename: ...}.<br/>
-  You can verify checksum of downloaded file by using optional option {hash: {algo: ..., sum: ...}}<br/>
-  Where algo is a node.js supported crypto algo. On error or mismatch it will trigger error/retries.<br/>
-  Progress gives you the following stats: percent, speed, file.<br/>
-  Returns as above with an additional 'path' property set to the location the file was written in.<br/>
-  This is useful for promise chaining to example unzip an archive, etc.
-- `request.download.torrent(url string||path string||magnet string, destDir string, [option] object, [callbackProgress] function)`<br/>
-  Download files from a torrent url, torrent file, torrent magnet to destDir (if the dir doesn't exist it will be created for you).<br/>
-  You can exclude torrent files with option {exclusion: [...]}.<br/>
-  If there is no peers for by default 10sec download will fail with ETIMEOUT error.<br/>
-  You can change this value with option {timeout: 10000} (ms).<br/>
-  Other options are ignored.<br/>
-  Progress gives you the following stats: percent, speed.<br/>
-  Torrent can be resumed.<br/>
-  Returns an object with torrent download location, torrent name, and for every files of the torrent its name, relative path and path.<br/>  
-   ⚠️ Requires the optional module: webtorrent.<br/>
-- `request.download.all(listURL array, destDir string|array, [option] object, [callbackProgress] function)`<br/>
-  Download files in the list array one-by-one to destDir (if the dir doesn't exist it will be created for you).<br/>
-  If destDir is an array, files[i] will be written to destDir[i] in a 1:1 relation.<br/>
-  You can the same way force the filename of the files with option {filename: [..,..,..]}.<br/>
-  Again same thing for checksum: {hash: [{algo: ..., sum: ...},..,..]}.<br/>
-  Progress gives you the following stats: percent, speed, file.<br/>
-  Returns a list of result as above with an additional 'path' property set to the location the file was written in.
-- `request(url string, [payload] string|Buffer, [option] object)`<br/>
-  Make a request by default 'GET' use option {method: GET POST HEAD etc} to change it.<br/>
-  Use payload when using method 'POST'.<br/>
-  Returns an object:
-  ```js
-  {
-    code: ..., // HTTP Response code
-    message: ..., //HTTP Response message
-    url: ..., // URL
-    trace: [...], // URL history
-    headers: ..., //HTTP Response headers
-    body: ... // HTTP Response body on success
-  }
-  ```
+💡 In a dual stack network, IPv4 isn't prefered over IPv6 unlike Node's default behavior (_Node < 17_ ).
 
-# Browser
+💡 When making a `HEAD` request: 
 
-There is a version using the Web (Browser) Fetch API in `fetch.js`.<br/>
-This is meant to be used in a Browser env.<br/>
-_Not all features are available._
+- The promise always resolves no matter the HTTP response code.
+- **Doesn't** follow redirection **by design**.<br/>If you need to follow the redirection you can use the headers `location` from the response and make a new `HEAD` request.
 
-- `request(url string, [option] object)`<br/>
-  Make a request by default 'GET' use option {method: GET HEAD etc} to change it.<br/>
-- `request.getJson`
-- `request.head`
-- `request.get`
+#### ⚙️ Options
 
-Has 2 more options than the Node version :
+| option      | type        | default                            | description                                                                        |
+| ----------- | ----------- | ---------------------------------- | ---------------------------------------------------------------------------------- |
+| method      | string      | GET                                | HTTP method: get, post, head, etc                                                  |
+| encoding    | string      | utf8                               | Response encoding                                                                  |
+| timeout     | number      | 3000 (ms)                          | Time before aborting request                                                       |
+| maxRedirect | number      | 3                                  | How many redirections to follow before aborting.<br/>Use 0 to not follow redirects |
+| maxRetry    | number      | 0                                  | How many retries on error before aborting.<br/>Use 0 to not retry at all           |
+| retryDelay  | number      | 200 (ms)                           | How long to wait before a retry.<br/>Use 0 to instantly retry                      |
+| headers     | obj         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
+| signal      | AbortSignal | none                               | Abort signal                                                                       |
 
-| option | default    | description                                                                                                               |
-| ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| mode   | 'cors'     | The mode you want to use for the request.<br/>eg: cors, no-cors, or same-origin                                           |
-| cache  | 'no-store' | The cache mode you want to use for the request.<br/>eg: default, no-store, reload, no-cache, force-cache, only-if-cached. |
+### `get(url: string, option?: obj): Promise<obj>`
+Force the `GET` method. Since `request()` default to 'GET' you could just use `request()` directly. This is here for completeness.
 
-```js
-//Example
+### `head(url: string, option?: obj): Promise<obj>`
+Force the `HEAD` method.
 
-import request from "https://unpkg.com/@xan105/fs/lib/fetch.js";
+### `getJSON(url: string, option?: obj): Promise<obj>`
+Parse the response body as a JSON string and return the result.<br/>
+Force method to `GET` and the header `Accept` to `"application/json, application/json;indent=2"` if not set.
 
-request("some/url")
-  .then((res) => {
-    console.log(res.body);
-  })
-  .catch((err) => {
-    console.error(err);
-  });
+- alias: `getJson()`
+
+### `getXML(url: string, option?: obj): Promise<obj>`
+
+⚠️ Requires the [xml2js](https://www.npmjs.com/package/xml2js) module.
+
+Parse the response body as a XML string and return the result.<br/>
+Force method to `GET` and the header `Accept` to `"application/xml"` if not set.
+
+- alias: `getXml()`
+
+### `post(url: string, payload: any, option?: obj): Promise<obj>`
+Force method to `POST` and write/push payload.<br/>
+NB: On HTTP 301, 302, 303 redirection the method will be [changed to GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
+
+### `upload(url: string, payload: any, option?: obj): Promise<obj>`
+Force method to `POST` and write/push a multipart/form-data payload.<br/>
+You can use option `{fieldname: string, filename: string}` to specify the form field name and the file name.<br/>
+If you don't they will default respectively to 'file' and Date.now().<br/>
+
+### `download(href: string, destDir: string, option?: obj, callbackProgress?: fn): Promise<obj>`
+
+Download file to `destDir`.
+
+The response obj is like `request()` minus `body` and with the addition of a `file` obj:
+```ts
+{
+  name: string, //filename
+  path: string, //relative
+  fullPath: string //absolute
+}
 ```
+This is useful for promise chaining to example unzip an archive, etc.
+
+💡 Progress gives you the following stats: percent, speed, file.<br/>
+`callbackProgress(percent: number, speed: number, file: string)`
+
+#### ⚙️ Options
+
+| option      | type        | default                            | description                                                                        |
+| ----------- | ----------- | ---------------------------------- | ---------------------------------------------------------------------------------- |
+| timeout     | number      | 3000 (ms)                          | Time before aborting request                                                       |
+| maxRedirect | number      | 3                                  | How many redirections to follow before aborting.<br/>Use 0 to not follow redirects |
+| maxRetry    | number      | 3                                  | How many retries on error before aborting.<br/>Use 0 to not retry at all           |
+| retryDelay  | number      | 1000 (ms)                          | How long to wait before a retry.<br/>Use 0 to instantly retry                      |
+| headers     | obj         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
+| signal      | AbortSignal | none                               | Abort signal                                                                       |
+| filename    | string      | null                               | Use this if you want to specify the filename (force rename)                        |
+| hash        | obj         | null                               | Verify checksum of downloaded file²                                                |
+
+²Checksum option
+
+```ts
+{
+  algo: string, //A Node.js supported crypto algo. eg: "sha1"
+  sum: string //Checksum
+}
+```
+On error or mismatch it will trigger error/retry.
+
+### `downloadAll(href: string[], destDir: string|string[], option?: obj, callbackProgress?: fn): Promise<obj>`
+
+Download all the files in the list one-by-one to destDir.
+
+If `destDir` is an array, files[i] will be written to destDir[i] in a 1:1 relation.<br/>
+In the same fashion you can force the filename of the files with option `{filename: [..,..,..]}`.<br/>
+And again same thing for checksum: `{hash: [{algo: ..., sum: ...},..,..]}`.<br/>
+
+Returns an array of `download()` response obj.
+
+## Torrent namespace
+
+### `download(torrent: string, dest: string, option?: obj, callbackProgress?: fn): Promise<obj>`
+
+⚠️ Requires the [webtorrent](https://www.npmjs.com/package/webtorrent) module.
+
+Download files from a torrent url, torrent file, torrent magnet to `destDir`.<br/>
+
+💡 Progress gives you the following stats: percent, speed.<br/>
+`callbackProgress(percent: number, speed: number)`
+
+💡 Torrent can be resumed.<br/>
+
+Returns an object with torrent download location, torrent name, and for every files of the torrent its name, relative path and path.<br/>  
+
+```ts
+{
+  path: string, //absolute
+  name: string, //torrent name
+  file: [
+    {
+      name: string, //filename
+      path: string, //relative
+      fullPath: string //absolute
+    }
+  ]
+}
+```
+
+
+
+#### ⚙️ Options
+
+| option        | type      | default      | description                                                               |
+| ------------- | ----------| ------------ | ------------------------------------------------------------------------- |
+| timeout       | number    | 10 (sec)     | Time to wait for peers before aborting                                    |
+| exclusion     | string[]  | none         | Exclude files inside the torrent                                          |
+| downloadLimit | number    | none         | How many retries on error before aborting.<br/>Use 0 to not retry at all  |
+| uploadLimit   | number    | 100 (kb/s)   | How long to wait before a retry.<br/>Use 0 to instantly retry             |

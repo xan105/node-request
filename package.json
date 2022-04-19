@@ -4,12 +4,11 @@
   "description": "Simple HTTP request client with file download progress.",
   "type": "module",
   "exports": {
-    ".": "./lib/esm.js",
+    ".": "./lib/h1.js",
     "./h1": "./lib/h1.js",
     "./torrent": "./lib/torrent.js"
   },
-  "browser": "./lib/browser/fetch.js",
-  "types": "./types/esm.d.ts",
+  "browser": "./dist/fetch.js",
   "engines": {
     "node": ">=16.0.0"
   },
@@ -44,7 +43,7 @@
   },
   "homepage": "https://github.com/xan105/node-request#readme",
   "peerDependencies": {
-    "webtorrent": "^1.5.8",
+    "webtorrent": "^1.8.13",
     "xml2js": "^0.4.23"
   },
   "peerDependenciesMeta": {
@@ -56,12 +55,14 @@
     }
   },
   "devDependencies": {
-    "eslint": "^8.2.0",
-    "webtorrent": "^1.5.8",
+    "eslint": "^8.13.0",
+    "undici": "^5.0.0",
+    "webtorrent": "^1.8.13",
     "xml2js": "^0.4.23"
   },
   "dependencies": {
-    "@xan105/fs": "^2.0.0",
-    "@xan105/is": "^2.0.0"
+    "@xan105/error": "^1.2.0",
+    "@xan105/fs": "^2.0.4",
+    "@xan105/is": "^2.4.0"
   }
 }

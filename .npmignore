@@ -1,4 +1,7 @@
 .github/
 .eslintrc.json
-.prettierrc.json
 test/
+
+#temporary
+lib/fetch/
+lib/h2/
