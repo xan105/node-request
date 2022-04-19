@@ -5,16 +5,16 @@ HTTP request library based around Node.js' HTTP(S) API interfaces:
 
 - http/https
 - ~~http2~~¹
-- ~~undici/fetch (_included in Node.js 18_)~~¹
+- ~~undici/fetch (_included in Node.js 18_)¹~~
 
 ¹ Work in progress
 
 Provides common features such as retry on error, following redirects, progress when downloading file, ...<br />
 
-This library isn't intented to compete nor replace the well known libraries out there such as got, axios, node-fetch, ...
+This library isn't intented to compete nor replace the well known libraries such as got, axios, node-fetch, ...
 This is merely educational and for informational purposes in order to learn how HTTP requests work under the hood.
 
-This was originally created as [(request-zero)](https://www.npmjs.com/package/request-zero) at a time were the module `request` was the main choice and I didn't quite like it.
+This was originally created as [request-zero](https://www.npmjs.com/package/request-zero) at a time were the module `request` was the main choice and I didn't quite like it.
 It had a ton of dependencies, didn't use promises and I needed something very simple.
 
 Example
@@ -28,7 +28,7 @@ const res = await request("https://steamdb.info/app/220/");
 console.log(res.body);
 ```
 
-Json
+JSON
 
 ```js
 import { getJson } from "@xan105/request";
@@ -94,7 +94,7 @@ import * as h1 from "@xan105/request";
 //Head request
 const res = await h1.head(`http://ipv4.download.thinkbroadband.com/1GB.zip`);
 console.log(res);
-*/Output:
+/*Output:
 { status: 200, message: 'OK', headers: {...} }
 */
 
@@ -126,7 +126,7 @@ npm i webtorrent
 ```
 
 - [xml2js](https://www.npmjs.com/package/xml2js)<br />
-  Auto parsing xml (_like .getJson()_)<br />
+  XML parser<br />
 ```
 npm i xml2js
 ```
@@ -285,7 +285,7 @@ And again same thing for checksum: `{hash: [{algo: ..., sum: ...},..,..]}`.<br/>
 
 Returns an array of `download()` response obj.
 
-## Torrent namespace
+## Torrent
 
 ### `download(torrent: string, dest: string, option?: obj, callbackProgress?: fn): Promise<obj>`
 
@@ -318,9 +318,9 @@ Returns an object with torrent download location, torrent name, and for every fi
 
 #### ⚙️ Options
 
-| option        | type      | default      | description                                                               |
-| ------------- | ----------| ------------ | ------------------------------------------------------------------------- |
-| timeout       | number    | 10 (sec)     | Time to wait for peers before aborting                                    |
-| exclusion     | string[]  | none         | Exclude files inside the torrent                                          |
-| downloadLimit | number    | none         | How many retries on error before aborting.<br/>Use 0 to not retry at all  |
-| uploadLimit   | number    | 100 (kb/s)   | How long to wait before a retry.<br/>Use 0 to instantly retry             |
+| option        | type      | default      | description                                |
+| ------------- | ----------| ------------ | ------------------------------------------ |
+| timeout       | number    | 10 (sec)     | Time to wait for peers before aborting     |
+| exclusion     | string[]  | none         | Exclude files inside the torrent           |
+| downloadLimit | number    | -1 (none)    | Download speed limit                       |
+| uploadLimit   | number    | 100 (kb/s)   | Upload speed limit                         |
