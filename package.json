@@ -44,7 +44,7 @@
   "homepage": "https://github.com/xan105/node-request#readme",
   "peerDependencies": {
     "webtorrent": "^1.8.13",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0"
   },
   "peerDependenciesMeta": {
     "webtorrent": {
@@ -58,7 +58,7 @@
     "eslint": "^8.13.0",
     "undici": "^5.0.0",
     "webtorrent": "^1.8.13",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0"
   },
   "dependencies": {
     "@xan105/error": "^1.2.0",
