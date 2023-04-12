@@ -24,24 +24,25 @@ Simplest call
 
 ```js
 import { request } from "@xan105/request";
-const res = await request("https://steamdb.info/app/220/");
+const res = await request("https://www.google.com");
 console.log(res.body);
 ```
 
 JSON
 
 ```js
-import { getJson } from "@xan105/request";
+import { getJSON } from "@xan105/request";
 
-const json = await getJson("https://jsonplaceholder.typicode.com/todos/1");
+const json = await getJSON("https://jsonplaceholder.typicode.com/todos/1");
 console.log(json); 
 /*Output:
 { userId: 1, id: 1, title: 'delectus aut autem', completed: false }
 */
 
 //Github API
-const json = await getJson("https://api.github.com/repos/user/repo/releases/latest",
-                          {headers: {"Accept" : "application/vnd.github.v3+json"}});
+const json = await getJSON("https://api.github.com/repos/user/repo/releases/latest",{
+  headers: {"Accept" : "application/vnd.github.v3+json"}
+});
 console.log(json);
 /*Output:
 { url: '...', tag_name: '0.0.0', target_commitish: 'master', ... }
@@ -61,29 +62,38 @@ function printProgress(percent, speed, file){
 }
 
 //Simple download to disk (pipe to stream)
-await download("http://ipv4.download.thinkbroadband.com/1GB.zip","D:/Downloads", printProgress)
+await download(
+  "http://ipv4.download.thinkbroadband.com/1GB.zip", 
+  "D:/Downloads", 
+  printProgress
+);
 
 //Download from github ... aws redirection ... content disposition ... but custom filename
-const res = await download("https://github.com/user/repo/releases/download/0.0.0/Setup.exe",
-                           "D:/Downloads/", {filename: "supersetup.exe"}, printProgress);
+const res = await download(
+  "https://github.com/user/repo/releases/download/0.0.0/Setup.exe",
+  "D:/Downloads/", 
+  { filename: "supersetup.exe" }, 
+  printProgress
+);
 console.log(res); 
 /*Output:
 { status: 200, message: 'OK', headers: {...}, path: 'D:\\Downloads\\supersetup.exe' }
 */
 
 //Download a list of files one by one
-await request.download.all(["http://ipv4.download.thinkbroadband.com/5MB.zip",
-                            "http://ipv4.download.thinkbroadband.com/10MB.zip",
-                            "http://ipv4.download.thinkbroadband.com/20MB.zip",
-                            "http://ipv4.download.thinkbroadband.com/50MB.zip"],
-                            "D:\\Downloads", printProgress);
+await request.download.all([
+  "http://ipv4.download.thinkbroadband.com/5MB.zip",
+  "http://ipv4.download.thinkbroadband.com/10MB.zip",
+  "http://ipv4.download.thinkbroadband.com/20MB.zip",
+  "http://ipv4.download.thinkbroadband.com/50MB.zip"],
+  "D:\\Downloads", printProgress);
 ```
 
 Download a torrent
 
 ```js
 import { download } from "@xan105/request/torrent";
-download("https://webtorrent.io/torrents/sintel.torrent","D:\\Downloads");
+download("https://webtorrent.io/torrents/sintel.torrent", "D:\\Downloads");
 ```
 
 Misc
@@ -99,11 +109,14 @@ console.log(res);
 */
 
 //Manually specify retry on error and redirection to follow
-await request("https://steamdb.info/app/220/", {maxRetry: 2, maxRedirect: 2});
+await request("https://steamdb.info/app/220/", { maxRetry: 2, maxRedirect: 2 });
 
 //Upload a single file multipart/form-data
-const res = await h1.upload("http://127.0.0.1/upload/test/",
-                            "Hello world", {name: "file", filename: "hello world.txt"});
+const res = await h1.upload(
+  "http://127.0.0.1/upload/test/",
+  "Hello world", 
+  {name: "file", filename: "hello world.txt"}
+);
 console.log(res);
 /*Output:
 { status: 200, message: 'OK', headers: {...}, body: 'ok' }
