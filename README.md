@@ -147,7 +147,7 @@ npm i xml2js
 API
 ===
 
-⚠️ This module is only available as an ECMAScript module (ESM) starting with version 2.0.0.<br />
+⚠️ This module is only available as an ECMAScript module (ESM) starting with version 1.0.0.<br />
 Previous version(s) are CommonJS (CJS) with an ESM wrapper.
 
 💡 The underlying API used is determined by which namespace you import.<br />
