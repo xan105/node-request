@@ -1,7 +1,7 @@
 {
   "name": "@xan105/request",
-  "version": "2.0.0",
-  "description": "Simple HTTP request client with file download progress.",
+  "version": "1.0.0",
+  "description": "Simple HTTP request client with file download progress",
   "type": "module",
   "exports": {
     ".": "./lib/h1.js",
@@ -42,9 +42,23 @@
     "url": "https://github.com/xan105/node-request/issues"
   },
   "homepage": "https://github.com/xan105/node-request#readme",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/xan105"
+    },
+    {
+      "type": "paypal",
+      "url": "https://www.paypal.me/xan105"
+    },
+    {
+      "type": "patreon",
+      "url": "https://www.patreon.com/xan105"
+    }
+  ],
   "peerDependencies": {
-    "webtorrent": "^1.8.13",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0",
+    "webtorrent": "^2.0.16"
   },
   "peerDependenciesMeta": {
     "webtorrent": {
@@ -55,14 +69,13 @@
     }
   },
   "devDependencies": {
-    "eslint": "^8.13.0",
-    "undici": "^5.0.0",
-    "webtorrent": "^1.8.13",
-    "xml2js": "^0.4.23"
+    "eslint": "^8.38.0",
+    "webtorrent": "^2.0.16",
+    "xml2js": "^0.5.0"
   },
   "dependencies": {
-    "@xan105/error": "^1.2.0",
-    "@xan105/fs": "^2.0.4",
-    "@xan105/is": "^2.4.0"
+    "@xan105/error": "^1.6.0",
+    "@xan105/fs": "^2.1.0",
+    "@xan105/is": "^2.8.1"
   }
 }
