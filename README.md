@@ -175,11 +175,11 @@ import * as torrent from "@xan105/request/torrent";
 
 ## Named export
 
-### `request(href: string, payload?: any, option?: obj): Promise<obj>`
+### `request(href: string, payload?: any, option?: object): Promise<object>`
 
 This is the core request function every other functions are helper based on this one (_except download, downloadAll and torrent_).
 
-The response obj tries to be similar whether the request failed or succeeded.
+The response object tries to be similar whether the request failed or succeeded.
 
 ```ts
 {
@@ -187,13 +187,13 @@ The response obj tries to be similar whether the request failed or succeeded.
   message: string, //HTTP or Node error message (if any)
   trace: string[], //URL(s) of the request (redirection)
   domain: string, //url domain
-  sent: obj, //Header sent
+  sent: object, //Header sent
   address?: string, //IP address
   family?: string, //IPv4 or IPv6
   protocol?: string, //HTTP protocol (h1, h2, ...)
   security?: string, //TLS (HTTPS)
   port: number, //Network port
-  headers?: obj, //Response header
+  headers?: object, //Response header
   body?: string //Response body
 }
 ```
@@ -215,44 +215,50 @@ The response obj tries to be similar whether the request failed or succeeded.
 | maxRedirect | number      | 3                                  | How many redirections to follow before aborting.<br/>Use 0 to not follow redirects |
 | maxRetry    | number      | 0                                  | How many retries on error before aborting.<br/>Use 0 to not retry at all           |
 | retryDelay  | number      | 200 (ms)                           | How long to wait before a retry.<br/>Use 0 to instantly retry                      |
-| headers     | obj         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
+| headers     | object         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
 | signal      | AbortSignal | none                               | Abort signal                                                                       |
 
-### `get(url: string, option?: obj): Promise<obj>`
+### `get(url: string, option?: object): Promise<object>`
 Force the `GET` method. Since `request()` default to 'GET' you could just use `request()` directly. This is here for completeness.
 
-### `head(url: string, option?: obj): Promise<obj>`
+### `head(url: string, option?: object): Promise<object>`
 Force the `HEAD` method.
 
-### `getJSON(url: string, option?: obj): Promise<obj>`
+### `getJSON(url: string, option?: object): Promise<object>`
 Parse the response body as a JSON string and return the result.<br/>
-Force method to `GET` and the header `Accept` to `"application/json, application/json;indent=2"` if not set.
+Force method to `GET` and the header `Accept` to `"application/json"`.
 
 - alias: `getJson()`
 
-### `getXML(url: string, option?: obj): Promise<obj>`
+### `postJSON(url: string, obj: object, option?: object): Promise<object>`
+
+Send given object payload as a JSON encoded string.<br/>
+Parse the response body as a JSON string and return the result.<br/>
+Force method to `POST` and the headers `Accept` and `Content-Type` to `"application/json"`.
+
+### `getXML(url: string, option?: object): Promise<object>`
 
 ⚠️ Requires the [xml2js](https://www.npmjs.com/package/xml2js) module.
 
 Parse the response body as a XML string and return the result.<br/>
-Force method to `GET` and the header `Accept` to `"application/xml"` if not set.
+Force method to `GET` and the header `Accept` to `"application/xml"`.
 
 - alias: `getXml()`
 
-### `post(url: string, payload: any, option?: obj): Promise<obj>`
-Force method to `POST` and write/push payload.<br/>
+### `post(url: string, payload: unknown, option?: object): Promise<object>`
+Force method to `POST` and write/push given payload.<br/>
 NB: On HTTP 301, 302, 303 redirection the method will be [changed to GET](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
 
-### `upload(url: string, payload: any, option?: obj): Promise<obj>`
+### `upload(url: string, payload: unknown, option?: object): Promise<object>`
 Force method to `POST` and write/push a multipart/form-data payload.<br/>
 You can use option `{fieldname: string, filename: string}` to specify the form field name and the file name.<br/>
 If you don't they will default respectively to 'file' and Date.now().<br/>
 
-### `download(href: string, destDir: string, option?: obj, callbackProgress?: fn): Promise<obj>`
+### `download(href: string, destDir: string, option?: object, callbackProgress?: fn): Promise<object>`
 
 Download file to `destDir`.
 
-The response obj is like `request()` minus `body` and with the addition of a `file` obj:
+The response object is like `request()` minus `body` and with the addition of a `file` object:
 ```ts
 {
   name: string, //filename
@@ -273,10 +279,10 @@ This is useful for promise chaining to example unzip an archive, etc.
 | maxRedirect | number      | 3                                  | How many redirections to follow before aborting.<br/>Use 0 to not follow redirects |
 | maxRetry    | number      | 3                                  | How many retries on error before aborting.<br/>Use 0 to not retry at all           |
 | retryDelay  | number      | 1000 (ms)                          | How long to wait before a retry.<br/>Use 0 to instantly retry                      |
-| headers     | obj         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
+| headers     | object         | -> Chrome UA and UA Hint if https  | Headers of your request                                                            |
 | signal      | AbortSignal | none                               | Abort signal                                                                       |
 | filename    | string      | null                               | Use this if you want to specify the filename (force rename)                        |
-| hash        | obj         | null                               | Verify checksum of downloaded file²                                                |
+| hash        | object         | null                               | Verify checksum of downloaded file²                                                |
 
 ²Checksum option
 
@@ -288,7 +294,7 @@ This is useful for promise chaining to example unzip an archive, etc.
 ```
 On error or mismatch it will trigger error/retry.
 
-### `downloadAll(href: string[], destDir: string|string[], option?: obj, callbackProgress?: fn): Promise<obj>`
+### `downloadAll(href: string[], destDir: string|string[], option?: object, callbackProgress?: fn): Promise<object>`
 
 Download all the files in the list one-by-one to destDir.
 
@@ -296,11 +302,11 @@ If `destDir` is an array, files[i] will be written to destDir[i] in a 1:1 relati
 In the same fashion you can force the filename of the files with option `{filename: [..,..,..]}`.<br/>
 And again same thing for checksum: `{hash: [{algo: ..., sum: ...},..,..]}`.<br/>
 
-Returns an array of `download()` response obj.
+Returns an array of `download()` response object.
 
 ## Torrent
 
-### `download(torrent: string, dest: string, option?: obj, callbackProgress?: fn): Promise<obj>`
+### `download(torrent: string, dest: string, option?: object, callbackProgress?: fn): Promise<object>`
 
 ⚠️ Requires the [webtorrent](https://www.npmjs.com/package/webtorrent) module.
 
@@ -311,7 +317,7 @@ Download files from a torrent url, torrent file, torrent magnet to `destDir`.<br
 
 💡 Torrent can be resumed.<br/>
 
-Returns an object with torrent download location, torrent name, and for every files of the torrent its name, relative path and path.<br/>  
+Returns an objectect with torrent download location, torrent name, and for every files of the torrent its name, relative path and path.<br/>  
 
 ```ts
 {
